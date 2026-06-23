@@ -1,0 +1,70 @@
+# Box Annotator
+
+A small desktop tool for drawing bounding boxes on images and saving them to
+`annotations.json`. Built for the tree-detector training workflow.
+
+## What it does
+
+- Loads every image from `raw_images/`
+- Lets you draw boxes by click-dragging on the image
+- Saves boxes to `annotations.json` as `[x1, y1, x2, y2]` in **original image
+  pixels** (top-left and bottom-right corners), e.g.:
+
+```json
+{
+    "tile_001.jpg": [[120, 80, 140, 100], [310, 150, 330, 170]],
+    "tile_002.jpg": [[45, 200, 65, 220], [180, 280, 200, 300]]
+}
+```
+
+Every image in `raw_images/` appears in the file; images with no boxes get an
+empty list (`[]`).
+
+## Setup & run
+
+Uses the project's existing virtual environment at `tree_detector/.tree`
+(Python 3.12, already has Pillow + tkinter).
+
+### Easiest (macOS)
+Double-click `run.command`. It launches the app with the `.tree` venv and
+installs Pillow only if it's somehow missing.
+
+> If macOS blocks it, right-click `run.command` → Open, or run
+> `chmod +x run.command` once in Terminal.
+
+### Manual
+```bash
+# from the Training Classifier folder
+../.tree/bin/python annotate.py
+```
+
+Or, with `.tree` already activated:
+```bash
+python annotate.py
+```
+
+## Controls
+
+| Action | How |
+| --- | --- |
+| Draw a box | Click and drag on the image |
+| Delete a box | Right-click (or Control-click) on it |
+| Undo last box | `Ctrl+Z` / `Cmd+Z`, or the **Undo** button |
+| Clear all boxes on image | **Clear image** button |
+| Previous / next image | `A` / `D` or `←` / `→` or toolbar buttons |
+| Save | `S` or the **Save** button |
+
+Notes:
+- Boxes auto-save when you switch images and when you close the window.
+- The image is scaled to fit the window, but saved coordinates are always in
+  the original image's pixel space, so zoom doesn't affect the output.
+- All images are kept in `annotations.json`; ones with no boxes get `[]`.
+- Tiny accidental drags (under a few pixels) are ignored.
+
+## Files
+
+- `annotate.py` — the application
+- `raw_images/` — put your images here (`.jpg`, `.png`, `.bmp`, `.tif`, `.webp`, …)
+- `annotations.json` — generated output
+- `requirements.txt` — Python dependencies (Pillow), for reference/fallback
+- `run.command` — one-click launcher (macOS), uses the `.tree` venv
