@@ -22,26 +22,20 @@ empty list (`[]`).
 
 ## Setup & run
 
-Uses the project's existing virtual environment at `tree_detector/.tree`
-(Python 3.12, already has Pillow + tkinter).
+Requires Python 3 with `tkinter` (bundled with most Python installs) and
+Pillow.
 
-### Easiest (macOS)
-Double-click `run.command`. It launches the app with the `.tree` venv and
-installs Pillow only if it's somehow missing.
+```bash
+# from the Training Classifier folder
+python annotate.py
+```
+
+### One-click launch (macOS)
+Double-click `run.command`. It reuses an active virtual environment if one is
+set, otherwise creates a local `venv/` and installs the dependencies for you.
 
 > If macOS blocks it, right-click `run.command` → Open, or run
 > `chmod +x run.command` once in Terminal.
-
-### Manual
-```bash
-# from the Training Classifier folder
-../.tree/bin/python annotate.py
-```
-
-Or, with `.tree` already activated:
-```bash
-python annotate.py
-```
 
 ## Controls
 
@@ -66,5 +60,5 @@ Notes:
 - `annotate.py` — the application
 - `raw_images/` — put your images here (`.jpg`, `.png`, `.bmp`, `.tif`, `.webp`, …)
 - `annotations.json` — generated output
-- `requirements.txt` — Python dependencies (Pillow), for reference/fallback
-- `run.command` — one-click launcher (macOS), uses the `.tree` venv
+- `requirements.txt` — Python dependencies (Pillow)
+- `run.command` — one-click launcher (macOS)

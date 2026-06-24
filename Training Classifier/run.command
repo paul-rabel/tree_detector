@@ -1,22 +1,24 @@
 #!/bin/bash
 # Double-clickable launcher for the annotation tool (macOS).
-# Uses the project's existing .tree virtual environment.
+# Reuses an active virtualenv if present, otherwise sets up a local ./venv.
 cd "$(dirname "$0")" || exit 1
 
-VENV_PY="../.tree/bin/python"
-
-if [ -x "$VENV_PY" ]; then
-    PY="$VENV_PY"
-elif [ -n "$VIRTUAL_ENV" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
+if [ -n "$VIRTUAL_ENV" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
     PY="$VIRTUAL_ENV/bin/python"
+elif [ -x "venv/bin/python" ]; then
+    PY="venv/bin/python"
 else
-    PY="python3"
+    echo "Creating local virtual environment (first run)..."
+    python3 -m venv venv || { echo "Failed to create venv"; exit 1; }
+    PY="venv/bin/python"
+    "$PY" -m pip install --upgrade pip >/dev/null
+    "$PY" -m pip install -r requirements.txt || { echo "Failed to install deps"; exit 1; }
 fi
 
-# Make sure Pillow is available; install into the chosen interpreter if missing.
+# Ensure Pillow is available in whichever interpreter we chose.
 if ! "$PY" -c "import PIL" >/dev/null 2>&1; then
-    echo "Pillow not found in $PY — installing..."
-    "$PY" -m pip install -r requirements.txt || { echo "Failed to install Pillow"; exit 1; }
+    echo "Installing dependencies into $PY ..."
+    "$PY" -m pip install -r requirements.txt || { echo "Failed to install deps"; exit 1; }
 fi
 
 exec "$PY" annotate.py
