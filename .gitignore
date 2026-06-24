@@ -1,5 +1,7 @@
 .tree/
 
+.vscode
+
 # Python cache
 __pycache__/
 *.pyc
