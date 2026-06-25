@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        width: 180px;
+        margin: 0;
+        padding: 12px;
+        text-align: center;
+      }
+      #icon {
+        font-size: 28px;
+        background: none;
+        border: none;
+        cursor: default;
+      }
+      #toggle {
+        margin-top: 8px;
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      #toggle.on {
+        background: #1db954;
+      }
+      #toggle.off {
+        background: #888;
+      }
+      #threshold-row {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #333;
+        text-align: left;
+      }
+      #threshold-row label {
+        display: flex;
+        justify-content: space-between;
+      }
+      #threshold {
+        width: 100%;
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="icon">🌳</button>
+    <button id="toggle">…</button>
+    <div id="threshold-row">
+      <label for="threshold">
+        <span>Confidence</span><span id="threshold-value">0.45</span>
+      </label>
+      <input type="range" id="threshold" min="0" max="1" step="0.05" />
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

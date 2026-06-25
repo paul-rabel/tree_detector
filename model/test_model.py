@@ -5,6 +5,10 @@ import torchvision.transforms as T
 from pathlib import Path # to iterate over images
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
+# To get weights.pt
+from pathlib import Path
+WEIGHTS_PATH = Path(__file__).resolve().parent / "weights.pt"
+
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Running on {device}")
 
@@ -17,7 +21,7 @@ def load_model() -> torch.nn.Module:
     # replace the pre-trained head with a new one
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-    model.load_state_dict(torch.load("weights.pt", weights_only=True))
+    model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
     model.to(device)
     return model
 
@@ -46,13 +50,13 @@ def inference(file_path, model):
     model.eval()
     with torch.no_grad():
         predictions = model([img_tensor])
-
-    visualize(file_path, predictions, 0.5)
+    return predictions
 
 def main():
     model = load_model()
     for filepath in Path("./test_images").iterdir():
-        inference(filepath, model)
+        predictions = inference(filepath, model)
+        visualize(filepath, predictions, 0.5)
 
 
 if __name__ == "__main__":
