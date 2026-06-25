@@ -26,8 +26,10 @@ the model to find there.
    awaited.
 4. The detections are relayed back to the content script and drawn as green
    boxes and red center dots over the map.
-5. **`popup.html` / `popup.js`** provide an ON/OFF toggle, persisted via
-   `chrome.storage.local`.
+5. **`popup.html` / `popup.js`** provide an ON/OFF toggle and a **confidence
+   threshold** slider, both persisted via `chrome.storage.local`. The threshold
+   is read fresh on every request, so changing it takes effect on the next
+   capture.
 
 ## Installation (development)
 
@@ -53,11 +55,15 @@ const SERVER_URL = "http://localhost:8080/detect";
 
 ### Request
 
-The extension sends a POST with a JSON body containing a base64 PNG data URL:
+The extension sends a POST with a JSON body containing a base64 PNG data URL and
+the current confidence threshold:
 
 ```json
-{ "image": "data:image/png;base64,iVBORw0KGgo..." }
+{ "image": "data:image/png;base64,iVBORw0KGgo...", "threshold": 0.45 }
 ```
+
+`threshold` is optional from the server's point of view (it falls back to a
+default), but the extension always includes it.
 
 ### Response
 
@@ -89,7 +95,7 @@ otherwise the browser will block the `fetch` request from the extension.
 | Permission | Why |
 | --- | --- |
 | `tabs` | Access the active tab to screenshot it |
-| `storage` | Persist the ON/OFF toggle |
+| `storage` | Persist the ON/OFF toggle and confidence threshold |
 | `host_permissions: <all_urls>` | Required by `captureVisibleTab()` (a site-specific host permission is **not** sufficient), and also covers the `fetch` to `localhost:8080` |
 
 > `activeTab` is no longer relied upon for capturing — it only grants screenshot
@@ -103,7 +109,7 @@ otherwise the browser will block the `fetch` request from the extension.
 | `manifest.json` | Extension manifest (MV3) |
 | `background.js` | Service worker: capture → POST → normalize response |
 | `Content.js` | Movement detection + overlay rendering |
-| `popup.html` / `popup.js` | Toolbar popup with ON/OFF toggle |
+| `popup.html` / `popup.js` | Toolbar popup: ON/OFF toggle + confidence slider |
 | `assets/icon16.png` | Toolbar icon |
 
 ## Notes / limitations

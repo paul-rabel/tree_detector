@@ -59,6 +59,6 @@ Notes:
 
 - `annotate.py` — the application
 - `raw_images/` — put your images here (`.jpg`, `.png`, `.bmp`, `.tif`, `.webp`, …)
-- `annotations.json` — generated output
+- `annotations.json` — generated output, used to train the model in `../model.ipynb`
 - `requirements.txt` — Python dependencies (Pillow)
 - `run.command` — one-click launcher (macOS)
