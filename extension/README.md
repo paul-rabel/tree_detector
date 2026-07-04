@@ -6,19 +6,23 @@ detection server, and overlays the returned bounding boxes and center points on
 top of the map.
 
 The detector is meant for **aerial/satellite imagery**, so use the OSM **iD
-editor** (the "Edit" view, which shows Bing aerial tiles). The standard rendered
-map uses stylized vector tiles where trees aren't drawn, so there's nothing for
-the model to find there.
+editor** (the "Edit" view, which shows Bing aerial tiles).
 
 ## How it works
 
-1. **`Content.js`** (content script) detects map movement in a
-   renderer-agnostic way: it listens for pan/zoom input gestures (`wheel`,
-   `mouseup`/`pointerup`, `touchend`, `keyup`, `dblclick`) and `hashchange`
-   events on `window`. This works in the iD editor, which doesn't use Leaflet.
-   When the view has been still for `700ms`, it hides its own overlay (so old
-   markers aren't captured again), waits for that clear to actually paint, and
-   then messages the service worker.
+1. **`Content.js`** (content script) watches for map movement. It re-detects on
+   real pan/zoom gestures, but not on a plain click (which selects a feature or
+   plots a tree):
+   - a pointer gesture re-detects only if the pointer moved past
+     `DRAG_THRESHOLD_PX` between press and release (a drag-pan);
+   - `wheel`, double-click, and pan/zoom keys (arrows, `+`/`-`) always re-detect;
+   - `hashchange` covers programmatic view changes.
+
+   Because iD runs inside a same-origin `<iframe id="id-embed">` and DOM events
+   don't cross the frame boundary, the listeners are attached on both the top
+   `window` and the iframe's `contentWindow`. Once the view has been still for
+   `10ms`, the script hides its overlay (so old markers aren't captured again),
+   waits for that to paint, and then messages the service worker.
 2. **`background.js`** (service worker) calls `chrome.tabs.captureVisibleTab()`
    — the screenshot API, which is only available in the background context, not
    in content scripts.
@@ -31,6 +35,31 @@ the model to find there.
    is read fresh on every request, so changing it takes effect on the next
    capture.
 
+## Click-to-plot a tree
+
+Each red center dot is a suggestion. Clicking one (or near it — the clickable
+area is `DOT_HIT_PX` wide, so near-misses still register) plots a `natural=tree`
+node in the iD editor at that location by driving iD's own UI:
+
+1. Press **`1`** to enter "add a point" mode.
+2. Click the map at the dot's location to drop a node.
+3. Search **"Tree"** in the feature-type chooser and select it, tagging the node
+   `natural=tree`.
+4. Press **Escape** to deselect, so the node is committed and you can carry on
+   without clicking away.
+
+Because it uses the real editor, the edit appears on the map immediately and can
+be undone with `Ctrl+Z`. While plotting, the dot turns yellow and detection is
+paused so the overlay isn't cleared mid-action. Once the tree is placed, its
+suggestion (box and dot) is removed from the overlay; if plotting fails, the dot
+turns red again so it can be retried.
+
+This depends on iD's `1` shortcut and its DOM selectors
+(`.preset-search-input`, `.preset-list-button`), which are not a public API and
+may change with iD updates — check these first in `Content.js` if plotting
+breaks. The click position is `center / devicePixelRatio − iframeRect.topLeft`,
+which assumes the iframe fills the viewport.
+
 ## Installation (development)
 
 1. Open `chrome://extensions`.
@@ -39,11 +68,6 @@ the model to find there.
 4. Open the OSM **iD editor** (<https://www.openstreetmap.org/edit>), switch the
    background to aerial imagery if needed, and pan/zoom.
 
-> **Site access:** because `chrome.tabs.captureVisibleTab()` requires either the
-> `<all_urls>` host permission or an `activeTab` user gesture, the manifest
-> declares `<all_urls>`. After (re)loading the extension, make sure its **Site
-> access** is set to **"On all sites"** (`chrome://extensions` → Details),
-> otherwise automatic captures are blocked until you click the extension.
 
 ## Detection server contract
 
@@ -104,15 +128,6 @@ otherwise the browser will block the `fetch` request from the extension.
 | --- | --- |
 | `manifest.json` | Extension manifest (MV3) |
 | `background.js` | Service worker: capture → POST → normalize response |
-| `Content.js` | Movement detection + overlay rendering |
+| `Content.js` | Movement detection + overlay rendering + click-to-plot |
 | `popup.html` / `popup.js` | Toolbar popup: ON/OFF toggle + confidence slider |
 | `assets/icon16.png` | Toolbar icon |
-
-## Notes / limitations
-
-- The screenshot includes OSM's own UI (zoom buttons, search bar, sidebar), not
-  just the map tiles. If this interferes with detection, the screenshot can be
-  cropped to the map element's bounds before sending.
-- Captures are serialized: if the map is still moving while a request is in
-  flight, overlapping requests are dropped and a fresh capture runs once it
-  settles.

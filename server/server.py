@@ -26,6 +26,7 @@ import model.test_model as ml
 
 PORT = 8080
 CAPTURE_DIR = Path(__file__).resolve().parent / "captures"
+DEBUG = False
 
 
 model = ml.load_model()
@@ -95,10 +96,11 @@ class DetectHandler(http.server.BaseHTTPRequestHandler):
             saved_path = self._save_capture(image_bytes)
             width, height = png_dimensions(image_bytes)
 
-            print(
-                f"[debug-server] saved {saved_path.name} "
-                f"({width}x{height}px, {len(image_bytes)} bytes)"
-            )
+            if DEBUG:
+                print(
+                    f"[debug-server] saved {saved_path.name} "
+                    f"({width}x{height}px, {len(image_bytes)} bytes)"
+                )
 
             threshold = float(payload.get("threshold", DEFAULT_THRESHOLD))
 
@@ -106,6 +108,11 @@ class DetectHandler(http.server.BaseHTTPRequestHandler):
             predictions = ml.inference(saved_path, model)
             ret = to_detections(predictions, threshold)
 
+            # delete screenshots
+            if not DEBUG:
+                self._delete_captures(saved_path)
+
+            # send back
             self._send_json(200, {"detections": ret})
         except Exception as err:  # debug server: surface everything
             print(f"[debug-server] error: {err}")
@@ -118,6 +125,9 @@ class DetectHandler(http.server.BaseHTTPRequestHandler):
         path = CAPTURE_DIR / f"capture-{stamp}.png"
         path.write_bytes(image_bytes)
         return path
+    
+    def _delete_captures(self, path: Path):
+        path.unlink(missing_ok=True)
 
     def _send_json(self, status: int, body: dict) -> None:
         encoded = json.dumps(body).encode("utf-8")
