@@ -8,6 +8,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 # To get weights.pt
 from pathlib import Path
 WEIGHTS_PATH = Path(__file__).resolve().parent / "weights.pt"
+TEST_IMAGES_PATH = Path(__file__).resolve().parent / "test_images"
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Running on {device}")
@@ -54,7 +55,7 @@ def inference(file_path, model):
 
 def main():
     model = load_model()
-    for filepath in Path("./test_images").iterdir():
+    for filepath in Path(TEST_IMAGES_PATH).iterdir():
         predictions = inference(filepath, model)
         visualize(filepath, predictions, 0.5)
 

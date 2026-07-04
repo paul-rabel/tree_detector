@@ -98,10 +98,6 @@ otherwise the browser will block the `fetch` request from the extension.
 | `storage` | Persist the ON/OFF toggle and confidence threshold |
 | `host_permissions: <all_urls>` | Required by `captureVisibleTab()` (a site-specific host permission is **not** sufficient), and also covers the `fetch` to `localhost:8080` |
 
-> `activeTab` is no longer relied upon for capturing — it only grants screenshot
-> access right after a user gesture, which is why automatic captures failed
-> before `<all_urls>` was added.
-
 ## Files
 
 | File | Role |

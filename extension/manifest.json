@@ -3,7 +3,7 @@
     "name": "Tree Detector",
     "version": "1.0",
     "description": "Detects Trees in OSM for quick tree plotting",
-    "permissions": ["activeTab", "tabs", "storage"],
+    "permissions": ["tabs", "storage"],
     "host_permissions": [
         "<all_urls>"
     ],
