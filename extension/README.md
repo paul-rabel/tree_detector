@@ -11,16 +11,14 @@ editor** (the "Edit" view, which shows Bing aerial tiles).
 ## How it works
 
 1. **`Content.js`** (content script) watches for map movement. The iD editor
-   keeps the map view (center and zoom) in the URL hash, so it re-detects
-   whenever the hash changes via a `hashchange` listener — one signal that
-   covers pans, zooms, and programmatic navigation alike.
+   keeps the map view (center and zoom) in the page URL hash, so it re-detects
+   whenever the hash changes via a single `hashchange` listener on the top
+   `window` — one signal that covers pans, zooms, and programmatic navigation
+   alike.
 
-   Because iD runs inside a same-origin `<iframe id="id-embed">` and the hash
-   can change on either the top page or the iframe, the listener is attached on
-   both the top `window` and the iframe's `contentWindow`. Once the view has
-   been still for `10ms`, the script hides its overlay (so old markers aren't
-   captured again), waits for that to paint, and then messages the service
-   worker.
+   Once the view has been still for `10ms`, the script hides its overlay (so old
+   markers aren't captured again), waits for that to paint, and then messages the
+   service worker.
 2. **`background.js`** (service worker) calls `chrome.tabs.captureVisibleTab()`
    — the screenshot API, which is only available in the background context, not
    in content scripts.

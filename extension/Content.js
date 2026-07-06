@@ -363,44 +363,14 @@ async function acceptSuggestion(det, group, dot) {
 // Movement detection
 // ---------------------------------------------------------------------------
 //
-// The iD editor keeps the current map view (center and zoom) in the URL hash,
-// so any pan or zoom — by drag, wheel, keyboard, or programmatic navigation —
-// ends up changing the hash. Listening for `hashchange` is a single signal for
-// "the view moved", and it fires once iD settles the view rather than on every
-// intermediate frame.
+// The iD editor keeps the current map view (center and zoom) in the page URL
+// hash, so any pan or zoom — by drag, wheel, keyboard, or programmatic
+// navigation — ends up changing the hash. A single `hashchange` listener on the
+// top window is our signal that the view moved; it fires once iD settles the
+// view rather than on every intermediate frame.
 
-function attachMovementListeners(target) {
-  target.addEventListener("hashchange", scheduleCapture);
-}
-
-// The hash can change on the top page or on the same-origin iD iframe, and
-// events don't cross the frame boundary, so we listen on both windows.
 function watchMapMovement() {
-  attachMovementListeners(window);
-  watchIframeMovement();
-}
-
-function watchIframeMovement() {
-  const iframe = getIdIframe();
-  if (!iframe) {
-    // The iframe is injected after page load; retry until it exists.
-    setTimeout(watchIframeMovement, 500);
-    return;
-  }
-
-  const attach = () => {
-    try {
-      const win = iframe.contentWindow;
-      // addEventListener de-dupes identical listeners, so re-attaching is safe.
-      if (win) attachMovementListeners(win);
-    } catch {
-      // A cross-origin iframe would throw here; the OSM iD iframe is same-origin.
-    }
-  };
-
-  attach();
-  // A reload replaces the document and drops its listeners, so re-attach.
-  iframe.addEventListener("load", attach);
+  window.addEventListener("hashchange", scheduleCapture);
 }
 
 // ---------------------------------------------------------------------------
