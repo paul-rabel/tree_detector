@@ -14,10 +14,9 @@ extension  ──POST /detect (PNG + threshold)──▶  server.py  ──▶  
 ## Requirements
 
 - Python 3.10+
-- [PyTorch](https://pytorch.org/) + torchvision (the project venv at
-  `../.tree` already has these)
+- [PyTorch](https://pytorch.org/) + torchvision
 - Pillow
-- Model weights at `../model/weights.pt` (loaded via `model/test_model.py`)
+- Model weights at `../model/final_weights.pt` (loaded via `model/test_model.py`)
 
 The server imports the model code from `../model/test_model.py`, which is added
 to `sys.path` at startup, so no install/packaging of the model is needed.
@@ -25,8 +24,7 @@ to `sys.path` at startup, so no install/packaging of the model is needed.
 ## Running
 
 ```bash
-# from the repo root, using the project venv
-../.tree/bin/python server.py
+python server.py
 ```
 
 You should see:
@@ -62,7 +60,8 @@ Response:
 ```json
 {
   "detections": [
-    { "box": [x1, y1, x2, y2], "score": 0.92 }
+    { "box": [x1, y1, x2, y2], "score": 0.92 },
+    ...
   ]
 }
 ```

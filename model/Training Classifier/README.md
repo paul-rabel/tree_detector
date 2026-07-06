@@ -58,6 +58,7 @@ Notes:
 ## Files
 
 - `annotate.py` — the application
+- `augment.py` - script to 4x the number of training samples by mirroring data + labels
 - `raw_images/` — put your images here (`.jpg`, `.png`, `.bmp`, `.tif`, `.webp`, …)
 - `annotations.json` — generated output, used to train the model in `../model.ipynb`
 - `requirements.txt` — Python dependencies (Pillow)

@@ -363,60 +363,18 @@ async function acceptSuggestion(det, group, dot) {
 // Movement detection
 // ---------------------------------------------------------------------------
 //
-// We re-detect on genuine pan/zoom gestures, but not on a plain click (which
-// selects a feature or plots a tree). Pointer gestures only count once the
-// pointer has moved past a small threshold; wheel, double-click, pan/zoom keys,
-// and hash changes always count. Listeners use the capture phase so we still
-// see events the map widget might stop from bubbling.
-
-const DRAG_THRESHOLD_PX = 25; // min pointer travel to treat a gesture as a drag
-
-const MOVEMENT_KEYS = new Set([
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "+",
-  "-",
-  "=",
-  "_",
-]);
-
-let pointerStart = null;
-
-function onPointerDown(e) {
-  pointerStart = { x: e.clientX, y: e.clientY };
-}
-
-function onPointerUp(e) {
-  if (!pointerStart) return;
-  const dx = e.clientX - pointerStart.x;
-  const dy = e.clientY - pointerStart.y;
-  pointerStart = null;
-  if (Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) scheduleCapture();
-}
-
-function onPointerCancel() {
-  pointerStart = null;
-}
-
-function onMovementKeyUp(e) {
-  if (MOVEMENT_KEYS.has(e.key)) scheduleCapture();
-}
+// The iD editor keeps the current map view (center and zoom) in the URL hash,
+// so any pan or zoom — by drag, wheel, keyboard, or programmatic navigation —
+// ends up changing the hash. Listening for `hashchange` is a single signal for
+// "the view moved", and it fires once iD settles the view rather than on every
+// intermediate frame.
 
 function attachMovementListeners(target) {
-  const opts = { capture: true, passive: true };
-  target.addEventListener("pointerdown", onPointerDown, opts);
-  target.addEventListener("pointerup", onPointerUp, opts);
-  target.addEventListener("pointercancel", onPointerCancel, opts);
-  target.addEventListener("wheel", scheduleCapture, opts);
-  target.addEventListener("dblclick", scheduleCapture, opts);
-  target.addEventListener("keyup", onMovementKeyUp, opts);
   target.addEventListener("hashchange", scheduleCapture);
 }
 
-// Gestures happen inside the iD iframe, and DOM events don't cross the frame
-// boundary, so we listen on the top window and inside the same-origin iframe.
+// The hash can change on the top page or on the same-origin iD iframe, and
+// events don't cross the frame boundary, so we listen on both windows.
 function watchMapMovement() {
   attachMovementListeners(window);
   watchIframeMovement();

@@ -7,7 +7,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 # To get weights.pt
 from pathlib import Path
-WEIGHTS_PATH = Path(__file__).resolve().parent / "weights.pt"
+WEIGHTS_PATH = Path(__file__).resolve().parent / "final_weights.pt"
 TEST_IMAGES_PATH = Path(__file__).resolve().parent / "test_images"
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -19,6 +19,10 @@ def load_model() -> torch.nn.Module:
     num_classes = 2  # 1 class (tree) + background
     # get number of input features for the classifier (from the conv. layers / pooling)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
+
+    # Predicted trees that overlap more than 30% are the same tree
+    model.roi_heads.nms_thresh = 0.3
+
     # replace the pre-trained head with a new one
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
