@@ -14,7 +14,7 @@ This folder includes several related files and folders:
 - `test_images`: Folder with a few images to test the model on in `test_model`.
 
 ## Requirements
-- Python 3.9+
+- Python 3.10+
 - Inference only (what the server uses): `torch`, `torchvision`, `Pillow`
 - Finetuning via `model.ipynb` additionally needs: `numpy`, `pycocotools`
 

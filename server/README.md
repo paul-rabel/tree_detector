@@ -75,18 +75,12 @@ with `{ "error": "..." }`.
 Answers the browser's CORS preflight. All responses send
 `Access-Control-Allow-Origin: *`.
 
-## Captures
-
-Every received screenshot is written to `server/captures/capture-<timestamp>.png`
-for debugging (so you can see exactly what the extension sent). This directory is
-not committed; clear it whenever you like.
-
 ## Layout
 
 | File | Role |
 | --- | --- |
 | `server.py` | HTTP server: decode → save → run model → return detections |
-| `captures/` | Saved screenshots (generated at runtime) |
+| `captures/` | Saved screenshots (generated at runtime - deleted when not in debug mode) |
 
 ## Notes
 

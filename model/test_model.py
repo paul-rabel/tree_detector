@@ -2,7 +2,6 @@ from PIL import Image, ImageDraw
 import torch
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 import torchvision.transforms as T
-from pathlib import Path # to iterate over images
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 # To get weights.pt
