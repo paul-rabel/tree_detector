@@ -9,7 +9,7 @@ Tree Detector enables you to plot trees in OpenStreetMap (OSM) extremely efficie
 ## Installation
 
 ```bash
-git clone URL
+git clone https://github.com/paul-rabel/tree_detector.git
 ```
 
 ## Requirements
@@ -43,7 +43,7 @@ pip install -r requirements.txt
 python server/server.py
 ```
 4. Open OpenStreetMap and click the `Edit` button
-4. Activate the browser extension in chrome
+5. Activate the browser extension in chrome
     - For best performance use zoom level $18 - 21$
     - Keep the left ID sidebar open - the tool needs it
 

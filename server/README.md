@@ -84,7 +84,8 @@ Answers the browser's CORS preflight. All responses send
 
 ## Notes
 
-- This runs over plain HTTP on `localhost` and is intended for **local
+- This runs over plain HTTP and listens on `127.0.0.1` only, so it is
+  unreachable from other machines on the network. Intended for **local
   development only**.
 - The model dependency lives in `../model`. See that folder for training and the
   weights.

@@ -4,9 +4,7 @@ Pipeline per `POST /detect` request:
 
   1. Accepts `{ "image": "data:image/png;base64,...", "threshold": 0.45 }`
      (threshold optional).
-  2. Saves the decoded screenshot to `server/captures/` so you can eyeball
-     exactly what the extension captured.
-  3. Runs the Faster R-CNN tree detector (model/test_model.py) and returns the
+  2. Runs the Faster R-CNN tree detector (model/test_model.py) and returns the
      boxes whose score is above the threshold.
 
 Run it with the project venv: `python server.py`.
@@ -143,7 +141,9 @@ class DetectHandler(http.server.BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    with socketserver.TCPServer(("", PORT), DetectHandler) as httpd:
+    # Loopback only: the extension runs on this machine, and CORS headers do
+    # not stop non-browser clients elsewhere on the network.
+    with socketserver.TCPServer(("127.0.0.1", PORT), DetectHandler) as httpd:
         print(f"Debug detection server running at http://localhost:{PORT}/detect")
         print(f"Captures will be saved to {CAPTURE_DIR}")
         try:

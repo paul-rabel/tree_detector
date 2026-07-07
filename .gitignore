@@ -15,3 +15,5 @@ __pycache__/
 NEXT_STEPS.md
 
 weights.pt
+
+server/captures

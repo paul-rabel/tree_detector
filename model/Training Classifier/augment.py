@@ -19,7 +19,7 @@ VALID_EXTS = (".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tif", ".tiff", ".webp")
 def mirrorHorizontal(images: list, annotations: dict):
     new_names = []
     for name in images:
-        if "HFlip" in name:
+        if "HFlip" in name or "VFlip" in name:
             continue
         path = os.path.join(IMAGE_DIR, name)
         img = Image.open(path)
