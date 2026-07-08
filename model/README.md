@@ -25,6 +25,8 @@ pip install torch torchvision Pillow numpy pycocotools
 A GPU is optional: the code uses Apple MPS when available, otherwise it
 falls back to CPU.
 
+macOS note: Python installed from python.org needs root certificates installed once (run Install Certificates.command from the Python application folder), otherwise the notebook fails with CERTIFICATE_VERIFY_FAILED when downloading pretrained weights. Inference is unaffected.
+
 ## Running
 - Decent weights are already provided. Thus, to run this project you do not need to run any code here.
 - If you would like to generate your own weights / change optimization, `model.ipynb` contains thorough documentation on how to do so (simply follow the steps).

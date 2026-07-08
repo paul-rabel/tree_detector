@@ -13,8 +13,8 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Running on {device}")
 
 def load_model() -> torch.nn.Module:
-    # Load pretrained Faster R-CNN
-    model = fasterrcnn_resnet50_fpn(weights=None)
+    # Load Faster R-CNN model structure
+    model = fasterrcnn_resnet50_fpn(weights=None, weights_backbone=None)
     num_classes = 2  # 1 class (tree) + background
     # get number of input features for the classifier (from the conv. layers / pooling)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
