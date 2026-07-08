@@ -6,8 +6,6 @@ Pipeline per `POST /detect` request:
      (threshold optional).
   2. Runs the Faster R-CNN tree detector (model/test_model.py) and returns the
      boxes whose score is above the threshold.
-
-Run it with the project venv: `python server.py`.
 """
 
 import base64
@@ -141,8 +139,6 @@ class DetectHandler(http.server.BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    # Loopback only: the extension runs on this machine, and CORS headers do
-    # not stop non-browser clients elsewhere on the network.
     with socketserver.TCPServer(("127.0.0.1", PORT), DetectHandler) as httpd:
         print(f"Debug detection server running at http://localhost:{PORT}/detect")
         print(f"Captures will be saved to {CAPTURE_DIR}")
