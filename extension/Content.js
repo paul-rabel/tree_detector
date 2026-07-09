@@ -325,7 +325,7 @@ async function plotTreeAt(center) {
     const exact = buttons.find(
       (b) => b.querySelector(".label")?.textContent.trim().toLowerCase() === "tree"
     );
-    return exact || buttons[0] || null;
+    return exact || null;
   });
   if (!button) throw new Error("Tree preset not found in feature chooser");
   button.click();
