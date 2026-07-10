@@ -8,9 +8,15 @@ Tree Detector enables you to plot trees in OpenStreetMap (OSM) extremely efficie
 
 ## Installation
 
+As the model weights are ~166MB, this repository stores them with [Git LFS](https://git-lfs.com). Install it and activate it once before cloning:
+
 ```bash
+brew install git-lfs   # macOS
+git lfs install
 git clone https://github.com/paul-rabel/tree_detector.git
 ```
+
+If you already cloned without Git LFS, first install it, then run `git lfs pull` inside the repository to get the actual weights.
 
 ## Requirements
 
@@ -45,5 +51,14 @@ python server/server.py
 4. Open OpenStreetMap and click the `Edit` button
 5. Activate the browser extension in chrome
     - For best performance use zoom level $18 - 21$
-    - Keep the left ID sidebar open - the tool needs it
+    - Keep the left iD sidebar open - the tool needs it
+
+## Project Structure
+
+Each component has its own README:
+
+- [`extension/`](./extension/README.md) — the Chrome extension: screenshots the map, overlays detections, and plots accepted trees in the iD editor.
+- [`server/`](./server/README.md) — the local detection server: receives screenshots, runs the model, returns bounding boxes.
+- [`model/`](./model/README.md) — the Faster R-CNN model, fine-tuned weights, inference code, and the training notebook.
+- [`model/Training Classifier/`](./model/Training%20Classifier/README.md) — tooling to label satellite images for (re)training.
 
