@@ -16,16 +16,26 @@ editor** (the "Edit" view, which shows Bing aerial tiles).
    `window` — one signal that covers pans, zooms, and programmatic navigation
    alike.
 
-   Once the view has been still for `10ms`, the script hides its overlay (so old
+   Once the view has been still for `100ms`, the script hides its overlay (so old
    markers aren't captured again), waits for that to paint, and then messages the
    service worker.
 2. **`background.js`** (service worker) calls `chrome.tabs.captureVisibleTab()`
    — the screenshot API, which is only available in the background context, not
    in content scripts.
+
+   Before contacting the server, it checks the screenshot for large pure-black
+   regions, which mean the aerial imagery tiles haven't finished loading. Such
+   captures are rejected and the content script retries shortly after (a few
+   times — then the capture is sent anyway, so genuinely dark imagery still
+   gets detections). Real imagery, even dark forest or water, virtually never
+   contains large exactly-black areas, so false rejections are rare and
+   harmless.
 3. The screenshot is POSTed to the detection server and the JSON response is
    awaited.
 4. The detections are relayed back to the content script and drawn as green
-   boxes and red center dots over the map.
+   boxes and red center dots over the map. If the map moved while the server
+   was detecting, the now-stale detections are discarded instead and a fresh
+   scan of the current view is scheduled.
 5. **`popup.html` / `popup.js`** provide an ON/OFF toggle and a **confidence
    threshold** slider, both persisted via `chrome.storage.local`. The threshold
    is read fresh on every request, so changing it takes effect on the next
