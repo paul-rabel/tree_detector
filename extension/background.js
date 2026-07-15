@@ -2,6 +2,15 @@
 // host/port/path or expects a different request/response shape.
 const SERVER_URL = "http://localhost:8080/detect";
 
+// A capture whose near-black share exceeds BLACK_FRACTION is judged "not yet
+// loaded" and rejected (unless the sender forces it through). Unloaded tile
+// areas are pure black (#000); real imagery — even dark forest or water —
+// stays above BLACK_PIXEL_MAX per channel thanks to sensor noise and JPEG
+// artifacts.
+const BLACK_PIXEL_MAX = 12; // per-channel value at or below which a pixel is "black"
+const BLACK_FRACTION = 0.15; // tolerated share of black pixels (UI chrome is dark too)
+const SAMPLE_STEP = 4; // sample every Nth pixel in each dimension for speed
+
 // captureVisibleTab can only run in the service worker, and only one capture
 // at a time per window, so we serialize requests behind a single in-flight job.
 let inFlight = false;
@@ -15,7 +24,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
-  handleCaptureAndDetect(sender)
+  handleCaptureAndDetect(sender, message.force)
     .then((result) => sendResponse({ ok: true, ...result }))
     .catch((err) => sendResponse({ ok: false, error: String(err) }));
 
@@ -23,13 +32,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-async function handleCaptureAndDetect(sender) {
+async function blackFraction(dataUrl) {
+  const blob = await (await fetch(dataUrl)).blob();
+  const bitmap = await createImageBitmap(blob);
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(bitmap, 0, 0);
+  const { data } = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+
+  let black = 0;
+  let total = 0;
+  for (let y = 0; y < bitmap.height; y += SAMPLE_STEP) {
+    for (let x = 0; x < bitmap.width; x += SAMPLE_STEP) {
+      const i = (y * bitmap.width + x) * 4;
+      if (
+        data[i] <= BLACK_PIXEL_MAX &&
+        data[i + 1] <= BLACK_PIXEL_MAX &&
+        data[i + 2] <= BLACK_PIXEL_MAX
+      ) {
+        black++;
+      }
+      total++;
+    }
+  }
+  return black / total;
+}
+
+async function handleCaptureAndDetect(sender, force) {
   inFlight = true;
   try {
     const windowId = sender?.tab?.windowId;
     const dataUrl = await chrome.tabs.captureVisibleTab(windowId, {
       format: "png",
     });
+
+    // Reject screenshots that are mostly black (imagery tiles not loaded yet)
+    // instead of wasting an inference on them. `force` skips the check so
+    // repeated rejections can't starve genuinely dark views.
+    if (!force && (await blackFraction(dataUrl)) > BLACK_FRACTION) {
+      return { incomplete: true };
+    }
 
     // Score threshold is set in the popup and read fresh on every request, so
     // changing the slider takes effect on the next capture.

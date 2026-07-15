@@ -5,7 +5,9 @@
 // returned bounding boxes and center points over the map. Clicking a center
 // point plots a `natural=tree` node in the iD editor at that location.
 
-const SETTLE_MS = 10; // idle time after a gesture before we capture
+const SETTLE_MS = 100; // idle time after a gesture before we capture
+const BLACK_RETRIES = 5; // rejected (mostly black) captures before sending anyway
+const BLACK_RETRY_DELAY_MS = 400; // wait between retries while tiles load
 const DOT_HIT_PX = 30; // clickable diameter around a center point (forgives near-misses)
 const DPR = () => window.devicePixelRatio || 1;
 
@@ -134,6 +136,11 @@ function renderDetections(detections) {
 // Capture pipeline
 // ---------------------------------------------------------------------------
 
+// Counts consecutive captures rejected for containing mostly-black (i.e. not
+// yet loaded) imagery. After BLACK_RETRIES attempts the capture is sent to the
+// server anyway, so genuinely dark imagery still gets detections.
+let blackRetries = 0;
+
 async function captureAndDetect() {
   if (!enabled || contextInvalidated) return;
   if (!extensionAlive()) {
@@ -145,23 +152,44 @@ async function captureAndDetect() {
   clearOverlay();
   await nextPaint();
 
+  // Stamp the map position at capture time; if it changed by the time the
+  // detections arrive, they belong to an old view and must not be rendered.
+  const hashAtCapture = window.location.hash;
+
   try {
-    chrome.runtime.sendMessage({ action: "captureAndDetect" }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.warn(
-          "[TreeDetector] messaging failed:",
-          chrome.runtime.lastError.message
-        );
-        return;
-      }
-      if (!response?.ok) {
-        if (response?.error !== "busy") {
-          console.warn("[TreeDetector] detection failed:", response?.error);
+    chrome.runtime.sendMessage(
+      { action: "captureAndDetect", force: blackRetries >= BLACK_RETRIES },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.warn(
+            "[TreeDetector] messaging failed:",
+            chrome.runtime.lastError.message
+          );
+          return;
         }
-        return;
+        if (!response?.ok) {
+          if (response?.error !== "busy") {
+            console.warn("[TreeDetector] detection failed:", response?.error);
+          }
+          return;
+        }
+        if (window.location.hash !== hashAtCapture) {
+          // Stale: the map moved during detection. Discard and rescan the
+          // current view (debounced, so ongoing movement folds into one scan).
+          blackRetries = 0;
+          scheduleCapture();
+          return;
+        }
+        if (response.incomplete) {
+          // The screenshot was mostly black (imagery tiles still loading).
+          blackRetries++;
+          setTimeout(captureAndDetect, BLACK_RETRY_DELAY_MS);
+          return;
+        }
+        blackRetries = 0;
+        renderDetections(response.detections || []);
       }
-      renderDetections(response.detections || []);
-    });
+    );
   } catch (err) {
     // sendMessage throws synchronously when the context is gone.
     handleContextInvalidated(err);
