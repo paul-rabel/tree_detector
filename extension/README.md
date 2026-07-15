@@ -24,7 +24,7 @@ editor** (the "Edit" view, which shows Bing aerial tiles).
    in content scripts.
 
    Before contacting the server, it checks the screenshot for large pure-black
-   regions, which mean the aerial imagery tiles haven't finished loading. Such
+   regions (>15% of total image), which mean the aerial imagery tiles haven't finished loading. Such
    captures are rejected and the content script retries shortly after (a few
    times — then the capture is sent anyway, so genuinely dark imagery still
    gets detections). Real imagery, even dark forest or water, virtually never
